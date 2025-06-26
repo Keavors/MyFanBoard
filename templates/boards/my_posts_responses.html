@@ -1,5 +1,3 @@
-{# myfanboard_project/boards/templates/boards/my_posts_responses.html #}
-
 {% extends 'base.html' %}
 
 {% block title %}Отклики на мои объявления{% endblock %}
@@ -18,7 +16,7 @@
                     </option>
                 {% endfor %}
             </select>
-            <noscript><button type="submit">Применить фильтр</button></noscript> {# Для пользователей без JS #}
+            <noscript><button type="submit">Применить фильтр</button></noscript>
         </form>
     </div>
 
@@ -28,14 +26,13 @@
                 <div class="list-group-item" style="margin-bottom: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
                     <h3>
                         <a href="{% url 'boards:post_detail' board_pk=response.post.board.pk post_pk=response.post.pk %}">
-                            Отклик на пост: "{{ response.post.title }}"
+                            Объявление: {{ response.post.title }}
                         </a>
                     </h3>
                     <p>
+                        Отклик от <strong>{{ response.author.username }}</strong>
                         <small>
-                            От: <strong>{{ response.author.username }}</strong> |
-                            Отправлен: {{ response.created_at|date:"d M Y H:i" }} |
-                            Статус:
+                            ({{ response.created_at|date:"d M Y H:i" }})
                             {% if response.is_accepted %}
                                 <span class="badge bg-success">Принят</span>
                             {% else %}
@@ -44,7 +41,7 @@
                         </small>
                     </p>
                     <div class="response-content" style="margin-top: 10px; padding: 10px; background-color: #f0f0f0; border-radius: 3px;">
-                        {{ response.content|safe }} {# Отображаем HTML-содержимое #}
+                        {{ response.content|safe }}
                     </div>
 
                     <div class="response-actions" style="margin-top: 15px;">

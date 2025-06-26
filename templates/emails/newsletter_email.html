@@ -22,14 +22,17 @@
             <p>Новое сообщение от команды MyFanBoard:</p>
             <hr>
             <div>
-                {{ newsletter_content|safe }} {# Разрешаем HTML, так как CKEditor его генерирует #}
+                {{ newsletter_content|safe }}
             </div>
             <hr>
-            <p>С уважением,<br>Команда MyFanBoard.</p>
-            <p>Вы получили это письмо, потому что подписаны на рассылку MyFanBoard. Если вы не хотите получать такие письма, вы можете отписаться, перейдя по ссылке: <a href="{{ unsubscribe_url }}">Отписаться</a>.</p>
+            <p>С уважением,<br>Команда MyFanBoard</p>
+            <p>Вы получили это письмо, потому что подписаны на нашу новостную рассылку.</p>
+            <p style="font-size: 12px; color: #999;">
+                Если вы больше не хотите получать наши рассылки, вы можете <a href="{{ unsubscribe_url }}" style="color: #999; text-decoration: underline;">отписаться здесь</a>.
+            </p>
         </div>
         <div class="footer">
-            &copy; {{ current_year }} MyFanBoard. Все права защищены.
+            <p>&copy; {{ current_year }} MyFanBoard. Все права защищены.</p>
         </div>
     </div>
 </body>

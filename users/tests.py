@@ -1,3 +1,4 @@
 from django.test import TestCase
 
-# Create your tests here.
+# Здесь будут написаны ваши тесты.
+# Пока файл пуст, но готов к добавлению тестов.

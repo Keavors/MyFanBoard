@@ -16,10 +16,17 @@
         .messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .messages .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
         h1, h2 { color: #007bff; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin-bottom: 5px; }
-        a { text-decoration: none; color: #007bff; }
+        a { color: #007bff; text-decoration: none; }
         a:hover { text-decoration: underline; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        .btn { display: inline-block; padding: 8px 15px; background-color: #007bff; color: white; border-radius: 5px; text-decoration: none; cursor: pointer; border: none; }
+        .btn-primary { background-color: #007bff; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #c82333; }
         .pagination { margin-top: 20px; text-align: center; }
         .pagination a { margin: 0 5px; padding: 5px 10px; border: 1px solid #007bff; border-radius: 4px; }
         .pagination a:hover { background-color: #e2f0ff; }
@@ -52,7 +59,7 @@
         {% endif %}
 
         {% block content %}
-            {# Основное содержимое страницы будет здесь #}
+            {# Содержимое каждого шаблона будет вставляться здесь #}
         {% endblock %}
     </div>
 </body>

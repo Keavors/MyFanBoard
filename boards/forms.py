@@ -1,17 +1,17 @@
-# MyFanBoard/boards/forms.py
-
 from django import forms
-from .models import Post, Response
-from django_ckeditor_5.widgets import CKEditor5Widget # Импортируем CKEditor5Widget
-from .models import Post, Response, Newsletter # Добавьте Newsletter
+from .models import Post, Response, Newsletter
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 class PostForm(forms.ModelForm):
+    """
+    Форма для создания и редактирования постов.
+    """
     class Meta:
         model = Post
         fields = ['title', 'content']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Заголовок вашего поста'}),
-            'content': CKEditor5Widget(attrs={'class': 'django_ckeditor_5'}, config_name='default') # Используем CKEditor5Widget
+            'content': CKEditor5Widget(attrs={'class': 'django_ckeditor_5'}, config_name='default')
         }
         labels = {
             'title': 'Заголовок',
@@ -19,11 +19,14 @@ class PostForm(forms.ModelForm):
         }
 
 class ResponseForm(forms.ModelForm):
+    """
+    Форма для создания откликов на посты.
+    """
     class Meta:
         model = Response
-        fields = ['content'] # Только поле content, так как post и author будут заполняться автоматически
+        fields = ['content']
         widgets = {
-            'content': CKEditor5Widget(attrs={'class': 'django_ckeditor_5'}, config_name='default') # Используем CKEditor5Widget
+            'content': CKEditor5Widget(attrs={'class': 'django_ckeditor_5'}, config_name='default')
         }
         labels = {
             'content': 'Ваш ответ',
@@ -31,6 +34,9 @@ class ResponseForm(forms.ModelForm):
 
 
 class NewsletterForm(forms.ModelForm):
+    """
+    Форма для создания новостной рассылки.
+    """
     class Meta:
         model = Newsletter
         fields = ['subject', 'content']

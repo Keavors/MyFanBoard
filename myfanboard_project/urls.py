@@ -1,18 +1,19 @@
 """
-URL configuration for myfanboard_project project.
+Конфигурация URL для проекта myfanboard_project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Список `urlpatterns` направляет URL-адреса к представлениям. Дополнительную информацию см.:
+https://docs.djangoproject.com/en/5.2/topics/http/urls/
+
+Примеры:
+Функциональные представления
+    1. Добавьте импорт: from my_app import views
+    2. Добавьте URL в urlpatterns: path('', views.home, name='home')
+Представления на основе классов
+    1. Добавьте импорт: from other_app.views import Home
+    2. Добавьте URL в urlpatterns: path('', Home.as_view(), name='home')
+Включение другого URLconf
+    1. Импортируйте функцию include(): from django.urls import include, path
+    2. Добавьте URL в urlpatterns: path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -28,7 +29,7 @@ urlpatterns = [
     path("ckeditor5/", include('django_ckeditor_5.urls')),
 ]
 
-# Для обслуживания медиафайлов в режиме разработки (НЕ ДЛЯ PRODUCTION!)
+# Для обслуживания медиафайлов и статических файлов в режиме разработки (НЕ ДЛЯ PRODUCTION!)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # Это для статики, но пусть будет
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -4,34 +4,28 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.urls import reverse
-from .models import Response # Импортируем модель Response
+from .models import Response
 
-# Здесь будут наши функции-ресиверы
 @receiver(post_save, sender=Response)
 def send_response_notification_email(sender, instance, created, **kwargs):
     """
-    Отправляет email-уведомление автору поста, когда на его пост оставлен новый отклик.
-    Срабатывает только при создании нового отклика.
+    Отправляет email-уведомление автору поста при создании нового отклика.
+    Уведомление отправляется только при создании отклика, не при его обновлении.
     """
-    if created: # Проверяем, что объект Response был только что создан (а не обновлен)
+    if created:
         response = instance
         post = response.post
         post_author = post.author
         response_author = response.author
 
-        # Избегаем отправки уведомления самому себе, если автор ответа и автор поста совпадают
+        # Избегаем отправки уведомления, если автор отклика и автор поста совпадают.
         if response_author == post_author:
             return
 
         subject = f'Новый отклик на ваш пост "{post.title[:50]}..."'
         template_name = 'emails/new_response_email.html'
 
-        # Формируем полный URL к посту
-        # request=None, потому что мы находимся вне контекста запроса.
-        # Это сработает, если SITE_URL в settings.py настроен корректно.
-        # Или можно использовать RequestSite, но для простоты пока оставим так.
-        # Если будет ошибка "NoReverseMatch" или некорректный URL,
-        # нужно будет настроить домен сайта в settings.py или использовать более сложный подход.
+        # Формирование полного URL к посту. Убедитесь, что SITE_URL настроен в settings.py.
         post_url = settings.SITE_URL + reverse('boards:post_detail', args=[post.board.pk, post.pk])
 
         context = {
@@ -44,10 +38,8 @@ def send_response_notification_email(sender, instance, created, **kwargs):
             'post_url': post_url,
         }
 
-        # Рендерим HTML-версию письма
         html_message = render_to_string(template_name, context)
 
-        # Создаем простую текстовую версию письма
         plain_message = (
             f"Здравствуйте, {post_author.username if post_author.username else post_author.email}!\n\n"
             f"На ваш пост \"{post.title}\" был оставлен новый отклик.\n\n"

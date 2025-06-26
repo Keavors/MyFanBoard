@@ -1,4 +1,5 @@
-{% extends 'base.html' %} {# Расширяем базовый шаблон #}
+{% extends 'base.html' %}
+{# Расширяем базовый шаблон #}
 
 {% block title %}Доски{% endblock %}
 
@@ -12,7 +13,7 @@
                     <a href="{% url 'boards:posts_by_board' pk=board.pk %}">
                         {{ board.name }}
                     </a> - {{ board.description }}
-                    (Постов: {{ board.posts.count }}) {# Сколько постов на этой доске #}
+                    (Постов: {{ board.posts.count }})
                 </li>
             {% endfor %}
         </ul>
@@ -20,7 +21,6 @@
         <p>Досок пока нет.</p>
     {% endif %}
 
-    {# Пагинация, если нужна #}
     {% if is_paginated %}
         <div class="pagination">
             <span class="step-links">

@@ -8,8 +8,8 @@
 
     <h2>Посты на этой доске:</h2>
 
-    {% if user.is_authenticated %} {# Показываем кнопку только залогиненным пользователям #}
-        <p><a href="{% url 'boards:post_create' board_pk=board.pk %}" class="btn btn-primary">Создать новый пост</a></p>
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'boards:create_post' pk=board.pk %}" class="btn btn-primary">Создать новый пост</a></p>
     {% else %}
         <p>Для создания постов <a href="{% url 'login_request_code' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
     {% endif %}
@@ -21,7 +21,7 @@
                     <a href="{% url 'boards:post_detail' pk=post.pk %}">
                         {{ post.title }}
                     </a>
-                    от {{ post.author.username }} (Просмотров: {{ post.views_count }})
+                    от {{ post.author.username }} (Просмотров: {{ post.views }})
                     <br>
                     <small>Создано: {{ post.created_at|date:"d M Y H:i" }}</small>
                 </li>
@@ -31,7 +31,6 @@
         <p>На этой доске пока нет постов.</p>
     {% endif %}
 
-    {# Пагинация #}
     {% if is_paginated %}
         <div class="pagination">
             <span class="step-links">

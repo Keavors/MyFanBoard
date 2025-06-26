@@ -1,9 +1,9 @@
 """
-WSGI config for myfanboard_project project.
+Конфигурация WSGI для проекта myfanboard_project.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+Этот файл предоставляет вызываемый объект WSGI в качестве переменной уровня модуля под названием ``application``.
 
-For more information on this file, see
+Дополнительную информацию об этом файле см.:
 https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 

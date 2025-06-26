@@ -1,193 +1,172 @@
-from django.shortcuts import render, redirect, reverse # Функции для рендеринга шаблонов, перенаправления
+from django.shortcuts import render, redirect, reverse
 from django.utils import timezone
-from django.views.generic import View, FormView # Базовые классы для представлений
-from django.contrib.auth import login, logout, authenticate # Функции для входа/выхода/аутентификации пользователя
-from django.contrib import messages # Для вывода сообщений пользователю
-from django.contrib.auth import get_user_model # Получаем модель пользователя Django
-from django.db import transaction # Для работы с транзакциями базы данных
+from django.views.generic import View, FormView
+from django.contrib.auth import login, logout, authenticate
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.db import transaction
 
-from .forms import UserRegisterForm, VerifyCodeForm, UserLoginForm # Наши формы
-from .models import OneTimeCode # Наша модель OneTimeCode
+from .forms import UserRegisterForm, VerifyCodeForm, UserLoginForm
+from .models import OneTimeCode
 
-User = get_user_model() # Получаем модель User
+# Получение текущей активной модели пользователя Django.
+User = get_user_model()
 
 # --- Регистрация пользователя ---
 class UserRegisterView(FormView):
+    """
+    Представление для регистрации нового пользователя.
+    """
     template_name = 'users/register.html'
     form_class = UserRegisterForm
     success_url = '/users/verify-registration-code/'
 
     def form_valid(self, form):
         """
-        Этот метод вызывается, если форма прошла валидацию.
-        Создаем пользователя и OneTimeCode, затем перенаправляем на страницу подтверждения.
+        Обработка данных, когда форма регистрации валидна.
+        Создает нового пользователя (неактивного) и генерирует одноразовый код для подтверждения.
         """
         email = form.cleaned_data['email']
         try:
             with transaction.atomic():
-                # Создаем нового пользователя (неактивного по умолчанию)
+                # Создание нового пользователя с указанным email и именем пользователя.
                 user = User.objects.create_user(email=email, username=email.split('@')[0])
-                user.is_active = False # Пользователь неактивен до подтверждения
+                user.is_active = False # Пользователь неактивен до подтверждения Email.
                 user.save()
 
-                # Создаем OneTimeCode для регистрации.
-                # Сигнал post_save для OneTimeCode отправит письмо.
+                # Создание одноразового кода для подтверждения регистрации.
                 OneTimeCode.objects.create(
                     user=user,
-                    code=OneTimeCode.generate_code(),
                     type='registration'
                 )
 
-            self.request.session['email_for_verification'] = email
-            messages.success(self.request, 'На ваш Email отправлен код подтверждения. Проверьте почту.')
+                # Сохранение email в сессии для использования на следующем шаге.
+                self.request.session['email_for_verification'] = email
+
+            messages.success(self.request, 'Регистрация почти завершена! На ваш Email отправлен код подтверждения.')
             return super().form_valid(form)
 
         except Exception as e:
-            print(f"DEBUG: Ошибка при регистрации: {e}") # Для отладки
             messages.error(self.request, f'Произошла ошибка при регистрации: {e}')
             return self.form_invalid(form)
 
+# --- Подтверждение регистрации ---
 class UserVerifyRegistrationCodeView(FormView):
-    template_name = 'users/verify_code.html' # Шаблон для ввода кода
-    form_class = VerifyCodeForm # Используем нашу форму VerifyCodeForm
-    success_url = '/' # Куда перенаправить после успешного подтверждения (например, на главную)
+    """
+    Представление для подтверждения регистрации с помощью одноразового кода.
+    """
+    template_name = 'users/verify_code.html'
+    form_class = VerifyCodeForm
+    success_url = '/users/login/' # После успешной регистрации перенаправляем на страницу входа.
 
     def get_initial(self):
         """
-        Получаем начальные данные для формы (в данном случае, email из сессии).
+        Предоставляет начальные данные для формы.
+        Извлекает email из сессии для скрытого поля.
         """
         initial = super().get_initial()
         initial['email'] = self.request.session.get('email_for_verification')
         return initial
 
-    def get_context_data(self, **kwargs):
-        """
-        Добавляем email в контекст шаблона, чтобы его можно было отобразить.
-        """
-        context = super().get_context_data(**kwargs)
-        context['email'] = self.request.session.get('email_for_verification')
-        return context
-
     def dispatch(self, request, *args, **kwargs):
         """
-        Проверяем, есть ли email в сессии, прежде чем показывать форму.
-        Если нет, перенаправляем на страницу регистрации.
+        Переопределение метода dispatch для проверки наличия email в сессии.
+        Если email нет, перенаправляет пользователя на страницу регистрации.
         """
         if not self.request.session.get('email_for_verification'):
             messages.error(self.request, 'Отсутствует Email для верификации. Начните регистрацию заново.')
-            return redirect('register') # 'register' - это имя URL-адреса для регистрации
+            return redirect('register')
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        print("DEBUG VIEW: UserVerifyRegistrationCodeView.form_valid() вызван.") # <-- Добавлено
-
-        otp_code_obj = form.cleaned_data.get('otp_code_obj') # Используем .get() для безопасности
-        if not otp_code_obj:
-            # Этого не должно произойти, если form.clean() работает правильно,
-            # но на всякий случай для дополнительной отладки.
-            print("DEBUG VIEW: otp_code_obj не найден в cleaned_data после form_valid.") # <-- Добавлено
-            messages.error(self.request, 'Ошибка валидации формы: код не найден.')
-            return self.form_invalid(form)
-
-
+        """
+        Обработка данных, когда форма подтверждения кода валидна.
+        Активирует пользователя и помечает код как использованный.
+        """
+        otp_code_obj = form.cleaned_data['otp_code_obj']
         user = otp_code_obj.user
-        print(f"DEBUG VIEW: Пользователь из кода: {user.email}, Активен: {user.is_active}") # <-- Добавлено
 
         try:
             with transaction.atomic():
+                # Активация пользователя.
                 user.is_active = True
                 user.save()
-                print(f"DEBUG VIEW: Пользователь {user.email} активирован.") # <-- Добавлено
-
+                # Пометка одноразового кода как использованного.
                 otp_code_obj.is_used = True
                 otp_code_obj.save()
-                print(f"DEBUG VIEW: Код {otp_code_obj.code} помечен как использованный.") # <-- Добавлено
 
-                login(self.request, user) # <-- Вернули логин
-                print(f"DEBUG VIEW: Пользователь {user.email} вошел в систему.") # <-- Добавлено
+                # Удаление email из сессии после успешной верификации.
+                self.request.session.pop('email_for_verification', None)
 
-                self.request.session.pop('email_for_verification', None) # Удаляем безопасно
-                print("DEBUG VIEW: email_for_verification удален из сессии.") # <-- Добавлено
-
-            messages.success(self.request, 'Ваша регистрация успешно подтверждена. Вы вошли в систему!')
-            print("DEBUG VIEW: form_valid() успешно завершен.") # <-- Добавлено
+            messages.success(self.request, 'Ваш аккаунт успешно подтвержден! Теперь вы можете войти.')
             return super().form_valid(form)
 
         except Exception as e:
-            # Более явный вывод ошибки из views.py
-            import traceback
-            traceback.print_exc() # Выводим полный traceback в консоль
-            print(f"DEBUG VIEW: ОБЩАЯ ОШИБКА В form_valid: {e}")
             messages.error(self.request, f'Произошла ошибка при подтверждении: {e}')
             return self.form_invalid(form)
 
-# --- Вход пользователя ---
+# --- Запрос кода для входа ---
 class UserLoginRequestCodeView(FormView):
-    template_name = 'users/login_request_code.html' # Шаблон для запроса кода входа
-    form_class = UserLoginForm # Используем форму для запроса email при входе
-    success_url = '/users/verify-login-code/' # Куда перенаправить после запроса кода
+    """
+    Представление для запроса одноразового кода для входа.
+    """
+    template_name = 'users/login_request_code.html'
+    form_class = UserLoginForm # Используем ту же форму, что и для регистрации, но с другой логикой
+    success_url = '/users/verify-login-code/'
 
     def form_valid(self, form):
         """
-        Если форма запроса email для входа валидна, генерируем OTP и отправляем email.
+        Обработка данных, когда форма запроса кода валидна.
+        Генерирует новый одноразовый код для входа и сохраняет email в сессии.
         """
         user = form.cleaned_data['user_obj']
-        email = form.cleaned_data['email']
-
         try:
             with transaction.atomic():
-                # Перед созданием нового, деактивируем все старые неиспользованные коды 'login' для этого пользователя
-                # Это предотвратит использование старых просроченных кодов
-                OneTimeCode.objects.filter(
-                    user=user,
-                    type='login',
-                    is_used=False,
-                    expires_at__gt=timezone.now()
-                ).update(is_used=True) # Помечаем старые как использованные
+                # Отключаем все неиспользованные и непросроченные коды для данного пользователя.
+                OneTimeCode.objects.filter(user=user, is_used=False, expires_at__gt=timezone.now()).update(is_used=True)
 
-                # Генерируем новый код для входа
+                # Создание нового одноразового кода для входа.
                 OneTimeCode.objects.create(
                     user=user,
-                    code=OneTimeCode.generate_code(),
                     type='login'
                 )
-            self.request.session['email_for_login_verification'] = email # Сохраняем email в сессии
-            messages.success(self.request, 'Код для входа отправлен на ваш Email. Проверьте почту.')
+
+                # Сохранение email в сессии для использования на следующем шаге.
+                self.request.session['email_for_login_verification'] = user.email
+
+            messages.success(self.request, 'Код для входа отправлен на ваш Email.')
             return super().form_valid(form)
 
         except Exception as e:
-            messages.error(self.request, f'Произошла ошибка при отправке кода: {e}')
+            messages.error(self.request, f'Произошла ошибка при запросе кода: {e}')
             return self.form_invalid(form)
 
+# --- Подтверждение входа ---
 class UserLoginVerifyCodeView(FormView):
-    template_name = 'users/verify_code.html' # Используем тот же шаблон для ввода кода
-    form_class = VerifyCodeForm # Используем ту же форму VerifyCodeForm
-    success_url = '/' # Куда перенаправить после успешного входа
+    """
+    Представление для подтверждения входа с помощью одноразового кода.
+    """
+    template_name = 'users/verify_code.html'
+    form_class = VerifyCodeForm
+    success_url = '/home/' # Указываем URL домашней страницы или другую страницу после успешного входа.
 
     def get_initial(self):
         """
-        Получаем начальные данные для формы (email из сессии для входа).
+        Предоставляет начальные данные для формы.
+        Извлекает email из сессии для скрытого поля.
         """
         initial = super().get_initial()
         initial['email'] = self.request.session.get('email_for_login_verification')
         return initial
 
-    def get_context_data(self, **kwargs):
-        """
-        Добавляем email в контекст шаблона.
-        """
-        context = super().get_context_data(**kwargs)
-        context['email'] = self.request.session.get('email_for_login_verification')
-        context['is_login_flow'] = True # Флаг для шаблона, если нужно что-то менять для входа
-        return context
-
     def dispatch(self, request, *args, **kwargs):
         """
-        Проверяем, есть ли email в сессии, прежде чем показывать форму.
+        Переопределение метода dispatch для проверки наличия email в сессии.
+        Если email нет, перенаправляет пользователя на страницу запроса кода для входа.
         """
         if not self.request.session.get('email_for_login_verification'):
             messages.error(self.request, 'Отсутствует Email для входа. Запросите код для входа заново.')
-            return redirect('login_request_code') # 'login_request_code' - имя URL-адреса
+            return redirect('login_request_code')
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -200,11 +179,14 @@ class UserLoginVerifyCodeView(FormView):
 
         try:
             with transaction.atomic():
-                otp_code_obj.is_used = True # Помечаем код как использованный
+                # Помечаем код как использованный.
+                otp_code_obj.is_used = True
                 otp_code_obj.save()
 
-                login(self.request, user) # Входим пользователя в систему
-                self.request.session.pop('email_for_login_verification', None) # Удаляем безопасно
+                # Входим пользователя в систему.
+                login(self.request, user)
+                # Удаляем email из сессии.
+                self.request.session.pop('email_for_login_verification', None)
 
             messages.success(self.request, 'Вы успешно вошли в систему!')
             return super().form_valid(form)
@@ -215,7 +197,13 @@ class UserLoginVerifyCodeView(FormView):
 
 # --- Выход пользователя ---
 class UserLogoutView(View):
+    """
+    Представление для выхода пользователя из системы.
+    """
     def get(self, request, *args, **kwargs):
-        logout(request) # Функция выхода из Django
+        """
+        Обработка GET-запроса для выхода из системы.
+        """
+        logout(request)
         messages.info(request, 'Вы вышли из системы.')
-        return redirect('/') # Перенаправляем на главную страницу
+        return redirect(reverse('login_request_code')) # Перенаправляем на страницу запроса кода для входа.

@@ -1,4 +1,3 @@
-{# templates/boards/post_detail.html #}
 {% extends 'base.html' %}
 
 {% block title %}{{ post.title }} - {{ post.board.name }}{% endblock %}
@@ -12,9 +11,8 @@
         <p><strong>Доска:</strong> {{ post.board.name }}</p>
         <p><strong>Создано:</strong> {{ post.created_at|date:"d M Y H:i" }}</p>
         <p><strong>Обновлено:</strong> {{ post.updated_at|date:"d M Y H:i" }}</p>
-        <p><strong>Просмотров:</strong> {{ post.views }}</p> {# <-- ИЗМЕНЕНО: views_count на views #}
+        <p><strong>Просмотров:</strong> {{ post.views }}</p>
         <hr>
-        {# Содержимое поста, здесь будет HTML из CKEditor #}
         <div>{{ post.content|safe }}</div>
     </div>
 
@@ -28,7 +26,6 @@
             {% for response in responses %}
                 <li>
                     <p><strong>{{ response.author.username }}</strong> ответил {{ response.created_at|date:"d M Y H:i" }}:</p>
-                    {# Содержимое ответа, здесь будет HTML из CKEditor #}
                     <div>{{ response.content|safe }}</div>
                     <hr>
                 </li>
@@ -42,10 +39,11 @@
         <h2>Добавить ответ</h2>
         <form method="post" action="{% url 'boards:add_response' board_pk=post.board.pk post_pk=post.pk %}">
             {% csrf_token %}
-            {{ form.as_p }} {# Вывод формы ответа #}
+            {{ form.as_p }}
             <button type="submit">Опубликовать ответ</button>
         </form>
+        {{ form.media }}
     {% else %}
-        <p>Чтобы оставить ответ, пожалуйста, <a href="{% url 'login_request_code' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+        <p>Для того чтобы оставить ответ, пожалуйста, <a href="{% url 'login_request_code' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
     {% endif %}
 {% endblock %}

@@ -1,9 +1,9 @@
 """
-ASGI config for myfanboard_project project.
+Конфигурация ASGI для проекта myfanboard_project.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+Этот файл предоставляет вызываемый объект ASGI в качестве переменной уровня модуля под названием ``application``.
 
-For more information on this file, see
+Дополнительную информацию об этом файле см.:
 https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 

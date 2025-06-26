@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views # Импортируем представления из текущей папки
+from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'), # Главная страница
+    # Главная страница.
+    path('', views.home, name='home'),
 ]

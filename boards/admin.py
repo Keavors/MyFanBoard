@@ -5,15 +5,18 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.urls import reverse
 
-from django.contrib.auth import get_user_model # <-- ИСПРАВЛЕНО: Импорт User модели
+from django.contrib.auth import get_user_model
 
-from .models import Board, Post, Response, Newsletter # Добавьте Newsletter
+from .models import Board, Post, Response, Newsletter
 
-# ИСПРАВЛЕНО: Получаем модель пользователя
+# Получение модели пользователя.
 User = get_user_model()
 
 @admin.register(Board)
 class BoardAdmin(admin.ModelAdmin):
+    """
+    Настройки отображения модели Board в административной панели.
+    """
     list_display = ('name', 'description', 'created_at', 'updated_at')
     search_fields = ('name',)
     list_filter = ('created_at',)
@@ -21,6 +24,9 @@ class BoardAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
+    """
+    Настройки отображения модели Post в административной панели.
+    """
     list_display = ('title', 'board', 'author', 'created_at', 'views')
     list_filter = ('board', 'author', 'created_at')
     search_fields = ('title', 'content')
@@ -30,6 +36,10 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Response)
 class ResponseAdmin(admin.ModelAdmin):
+    """
+    Настройки отображения модели Response в административной панели.
+    Добавлены действия для массового изменения статуса откликов.
+    """
     list_display = ('post', 'author', 'content', 'created_at', 'is_accepted')
     list_filter = ('is_accepted', 'created_at', 'post__board', 'author')
     search_fields = ('content', 'post__title', 'author__username')
@@ -38,16 +48,26 @@ class ResponseAdmin(admin.ModelAdmin):
 
     @admin.action(description='Пометить выбранные отклики как принятые')
     def mark_as_accepted(self, request, queryset):
+        """
+        Помечает выбранные отклики как принятые.
+        """
         queryset.update(is_accepted=True)
         self.message_user(request, "Выбранные отклики успешно помечены как принятые.")
 
     @admin.action(description='Пометить выбранные отклики как непринятые')
     def mark_as_unaccepted(self, request, queryset):
+        """
+        Помечает выбранные отклики как непринятые.
+        """
         queryset.update(is_accepted=False)
         self.message_user(request, "Выбранные отклики успешно помечены как непринятые.")
 
 @admin.register(Newsletter)
 class NewsletterAdmin(admin.ModelAdmin):
+    """
+    Настройки отображения модели Newsletter в административной панели.
+    Добавлено действие для отправки новостной рассылки.
+    """
     list_display = ('subject', 'created_at', 'sent_at', 'is_sent')
     list_filter = ('is_sent', 'created_at')
     search_fields = ('subject', 'content')
@@ -57,18 +77,12 @@ class NewsletterAdmin(admin.ModelAdmin):
 
     @admin.action(description='Отправить выбранные рассылки')
     def send_newsletter(self, request, queryset):
-        # ИСПРАВЛЕНО: Теперь 'User' будет распознаваться.
-        # Выберите ОДИН из этих вариантов для определения получателей рассылки:
-        #
-        # Вариант 1: Отправлять всем активным пользователям (как было изначально)
+        """
+        Отправляет выбранные новостные рассылки пользователям.
+        """
+        # Определите получателей рассылки.
+        # Пример: Отправлять всем активным пользователям.
         users_to_receive_newsletter = User.objects.filter(is_active=True)
-        #
-        # Вариант 2: Отправлять только активным пользователям, которые подписаны (если у вас есть такое поле в модели User)
-        # users_to_receive_newsletter = User.objects.filter(is_active=True, is_subscribed_to_newsletter=True)
-        #
-        # Вариант 3: Отправлять только активным пользователям, у которых профиль подписан (если у вас есть модель Profile)
-        # users_to_receive_newsletter = User.objects.filter(is_active=True, profile__is_subscribed_to_newsletter=True)
-
 
         emails_sent_count = 0
         emails_failed_count = 0
@@ -76,10 +90,12 @@ class NewsletterAdmin(admin.ModelAdmin):
         for newsletter in queryset:
             if not newsletter.is_sent:
                 subject = newsletter.subject
-                template_name = 'boards/emails/newsletter_email.html' # Путь к вашему шаблону письма
+                template_name = 'boards/emails/newsletter_email.html'
 
                 for user in users_to_receive_newsletter:
-                    unsubscribe_url = '#' # Пока заглушка для ссылки отписки
+                    # Вставьте реальный URL для отписки, если он существует.
+                    # Например: unsubscribe_url = request.build_absolute_uri(reverse('boards:unsubscribe_newsletter'))
+                    unsubscribe_url = '#'
 
                     context = {
                         'subject': subject,

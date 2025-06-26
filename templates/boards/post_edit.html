@@ -1,4 +1,3 @@
-{# templates/boards/post_edit.html #}
 {% extends 'base.html' %}
 
 {% block title %}Редактировать пост "{{ post.title }}"{% endblock %}
@@ -13,5 +12,5 @@
         <button type="submit">Сохранить изменения</button>
     </form>
 
-    {{ form.media }} {# Это важно для корректной работы CKEditor #}
+    {{ form.media }}
 {% endblock %}

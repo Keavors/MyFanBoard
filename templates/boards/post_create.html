@@ -7,8 +7,8 @@
     <p><a href="{% url 'boards:posts_by_board' pk=board.pk %}">Вернуться к доске "{{ board.name }}"</a></p>
 
     <form method="post">
-        {% csrf_token %} {# Важно для безопасности формы #}
-        {{ form.as_p }} {# Это простой способ вывести все поля формы в параграфах #}
+        {% csrf_token %}
+        {{ form.as_p }}
         <button type="submit">Опубликовать пост</button>
     </form>
 

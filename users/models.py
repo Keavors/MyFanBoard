@@ -1,14 +1,15 @@
 from django.db import models
-from django.conf import settings # Используется для доступа к AUTH_USER_MODEL
+from django.conf import settings
 from datetime import timedelta
 from django.utils import timezone
 import random
 import string
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save # <-- Убедитесь, что этот импорт есть
-from django.dispatch import receiver # <-- Убедитесь, что этот импорт есть
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-User = get_user_model() # Получаем модель User
+# Получение текущей активной модели пользователя Django.
+User = get_user_model()
 
 class OneTimeCode(models.Model):
     """
@@ -21,100 +22,107 @@ class OneTimeCode(models.Model):
     ]
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, # Ссылка на стандартную модель пользователя Django
-        on_delete=models.CASCADE, # Если пользователь удаляется, удаляются и его коды
-        related_name='one_time_codes', # Для удобного доступа к кодам пользователя (user.one_time_codes.all())
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='one_time_codes',
         verbose_name='Пользователь'
     )
     code = models.CharField(
-        max_length=6, # Например, 6-значный цифровой код
-        unique=False, # Разрешаем несколько кодов для одного пользователя (но активный будет один)
+        max_length=6,
+        unique=False,
         verbose_name='Код'
     )
     type = models.CharField(
         max_length=20,
-        choices=CODE_TYPES, # Используем предопределенные типы кодов
+        choices=CODE_TYPES,
         verbose_name='Тип кода'
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, # Автоматически устанавливается при создании объекта
+        auto_now_add=True,
         verbose_name='Дата создания'
     )
-    expires_at = models.DateTimeField( # Срок действия кода
+    expires_at = models.DateTimeField(
         verbose_name='Срок действия'
     )
     is_used = models.BooleanField(
-        default=False, # Флаг, указывающий, был ли код использован
+        default=False,
         verbose_name='Использован'
     )
 
     class Meta:
-        """
-        Вложенный класс Meta используется для определения метаданных модели.
-        """
-        verbose_name = 'Одноразовый код' # Название модели в единственном числе для админки
-        verbose_name_plural = 'Одноразовые коды' # Название модели во множественном числе для админки
-        ordering = ['-created_at'] # Сортировка по убыванию даты создания (новые коды сверху)
-
-    def __str__(self):
-        """
-        Метод для строкового представления объекта модели (удобно для админки).
-        """
-        return f"Код {self.code} для {self.user.email} ({self.type})"
-
-    def is_valid(self):
-        """
-        Проверяет, является ли код действительным (не использован и не истек).
-        """
-        return not self.is_used and self.expires_at > timezone.now()
-
-    @classmethod
-    def generate_code(cls):
-        """
-        Статический метод для генерации 6-значного цифрового кода.
-        """
-        return ''.join(random.choices(string.digits, k=6))
+        verbose_name = 'Одноразовый код'
+        verbose_name_plural = 'Одноразовые коды'
+        ordering = ['-created_at'] # Сортировка по дате создания (от новых к старым)
 
     def save(self, *args, **kwargs):
         """
-        Переопределяем метод save() для автоматического задания expires_at
-        при создании нового объекта.
+        Переопределение метода сохранения для установки срока действия и генерации кода.
         """
-        if not self.id: # Проверяем, создается ли новый объект (у него еще нет ID)
-            # Устанавливаем срок действия, например, 10 минут
+        if not self.code:
+            self.code = self.generate_code()
+        if not self.expires_at:
+            # Код действует 10 минут.
             self.expires_at = timezone.now() + timedelta(minutes=10)
-        super().save(*args, **kwargs) # Вызываем оригинальный метод save()
+        super().save(*args, **kwargs)
 
-class UserProfile(models.Model): # Создаем отдельный профиль для дополнительных полей
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    is_subscribed_to_newsletter = models.BooleanField(default=True, verbose_name="Подписан на рассылку")
+    def generate_code(self):
+        """
+        Генерирует 6-значный цифровой код.
+        """
+        return ''.join(random.choices(string.digits, k=6))
+
+    def is_valid(self):
+        """
+        Проверяет, действителен ли код (не использован и не просрочен).
+        """
+        return not self.is_used and self.expires_at > timezone.now()
 
     def __str__(self):
+        """
+        Строковое представление объекта.
+        """
+        status = 'Использован' if self.is_used else 'Не использован'
+        validity = 'Действителен' if self.is_valid() else 'Просрочен/Недействителен'
+        return f"Код {self.code} ({self.type}) для {self.user.email} - {status}, {validity}"
+
+class UserProfile(models.Model):
+    """
+    Модель профиля пользователя, расширяющая стандартную модель User.
+    Содержит дополнительные поля для пользователя.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile',
+        verbose_name='Пользователь'
+    )
+    is_subscribed_to_newsletter = models.BooleanField(
+        default=True,
+        verbose_name="Подписан на рассылку"
+    )
+
+    class Meta:
+        verbose_name = 'Профиль пользователя'
+        verbose_name_plural = 'Профили пользователей'
+
+    def __str__(self):
+        """
+        Строковое представление объекта.
+        """
         return f"Профиль {self.user.username}"
 
-# --- ИСПРАВЛЕННЫЙ ОБРАБОТЧИК СИГНАЛА ---
-# Объединяем создание и обновление профиля в одной функции.
-# Эта функция будет вызываться каждый раз, когда объект User сохраняется.
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """
+    Сигнал, создающий или обновляющий профиль пользователя при сохранении объекта User.
+    """
     if created:
         # Если пользователь только что создан, создаем для него профиль.
-        # Это предотвратит ошибку, если профиль еще не существует.
         UserProfile.objects.create(user=instance)
-    #else:
+    else:
         # Если пользователь уже существует, пытаемся сохранить его профиль.
-        # Используем try-except на случай, если профиль по каким-то причинам отсутствует
-        # у УЖЕ СУЩЕСТВУЮЩЕГО пользователя (например, до добавления этой логики)
-        # или был удален вручную.
-    try:
-        instance.profile.save()
-    except UserProfile.DoesNotExist:
-        # Если профиля нет (что теоретически не должно произойти для `existing` пользователя,
-        # если `created=True` отработал корректно, но может быть, если его удалили),
-        # можно создать его здесь.
-        UserProfile.objects.create(user=instance)
-
-# Удален дублирующийся сигнал save_user_profile
-# @receiver(post_save, sender=User)
-# def save_user_profile(sender, instance, **kwargs):
-#    instance.profile.save()
+        try:
+            instance.profile.save()
+        except UserProfile.DoesNotExist:
+            # Если профиля нет (например, если он был удален вручную), создаем его.
+            UserProfile.objects.create(user=instance)

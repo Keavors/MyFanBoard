@@ -2,13 +2,16 @@ from django.apps import AppConfig
 
 
 class BoardsConfig(AppConfig):
+    """
+    Конфигурация приложения "Доски объявлений".
+    """
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'boards'
-    verbose_name = 'Доски объявлений' # Добавим человекочитаемое имя для админки
+    verbose_name = 'Доски объявлений'
 
     def ready(self):
         """
-        Метод, который вызывается при старте приложения Django.
-        Здесь мы импортируем наши сигналы, чтобы они были зарегистрированы.
+        Метод, вызываемый при старте приложения Django.
+        Импортирует и регистрирует обработчики сигналов.
         """
         import boards.signals
