@@ -1,0 +1,30 @@
+{# templates/boards/posts_by_board.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ board.name }} - Доска{% endblock %}
+
+{% block content %}
+    <h1>Посты на доске "{{ board.name }}"</h1>
+    <p>{{ board.description }}</p>
+
+    <p><a href="{% url 'boards:create_post' pk=board.pk %}" class="btn btn-primary">Создать новый пост на "{{ board.name }}"</a></p>
+
+    {% if posts %}
+        <ul class="list-group">
+            {% for post in posts %}
+                <li class="list-group-item">
+                    <h3><a href="{% url 'boards:post_detail' board_pk=board.pk post_pk=post.pk %}">{{ post.title }}</a></h3>
+                    <p>
+                        <small>Автор: {{ post.author.username }} | Создано: {{ post.created_at|date:"d M Y H:i" }} | Просмотров: {{ post.views }}</small> {# <-- ИЗМЕНЕНО: views_count на views #}
+                    </p>
+                    {# Можно добавить краткий отрывок содержимого, если хотите #}
+                    {# <p>{{ post.content|striptags|truncatechars:200 }}</p> #}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>На этой доске пока нет постов. Будьте первым, кто его создаст!</p>
+    {% endif %}
+
+    <p class="mt-3"><a href="{% url 'boards:list' %}">Вернуться к списку досок</a></p>
+{% endblock %}

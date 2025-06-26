@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение регистрации</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        .header { background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .code { font-size: 24px; font-weight: bold; color: #007bff; text-align: center; margin: 20px 0; padding: 10px; background-color: #e2f0ff; border-radius: 5px; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Добро пожаловать на фан-ресурс MMORPG!</h2>
+        </div>
+        <div class="content">
+            <p>Здравствуйте, {{ user.username|default:user.email }}!</p>
+            <p>Мы получили запрос на регистрацию с вашим email. Чтобы завершить регистрацию, пожалуйста, используйте следующий код подтверждения:</p>
+            <div class="code">{{ code }}</div>
+            <p>Этот код действителен в течение 10 минут. Пожалуйста, не передавайте его никому.</p>
+            <p>Если вы не запрашивали регистрацию, просто проигнорируйте это письмо.</p>
+            <p>С уважением,<br>Команда фан-ресурса.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 MyFanBoard. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

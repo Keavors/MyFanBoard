@@ -1,0 +1,22 @@
+{% extends 'base.html' %} {# <-- ОЧЕНЬ ВАЖНО: Мы наследуем от базового шаблона #}
+
+{% block title %}Главная страница{% endblock %} {# <-- Заголовок страницы #}
+
+{% block content %}
+
+    <h1>Добро пожаловать на MyFanBoard!</h1>
+    {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!</p>
+        <div class="auth-links">
+            {# Добавляем ссылку на список досок для залогиненных пользователей #}
+            <p><a href="{% url 'boards:list' %}">Перейти к доскам</a></p>
+            <a href="{% url 'logout' %}">Выйти</a>
+        </div>
+    {% else %}
+        <p>Пожалуйста, зарегистрируйтесь или войдите, чтобы продолжить.</p>
+        <div class="auth-links">
+            <a href="{% url 'register' %}">Зарегистрироваться</a>
+            <a href="{% url 'login_request_code' %}">Войти</a>
+        </div>
+    {% endif %}
+{% endblock %}

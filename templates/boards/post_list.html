@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ board.name }}{% endblock %}
+
+{% block content %}
+    <h1>Доска: {{ board.name }}</h1>
+    <p>{{ board.description }}</p>
+
+    <h2>Посты на этой доске:</h2>
+
+    {% if user.is_authenticated %} {# Показываем кнопку только залогиненным пользователям #}
+        <p><a href="{% url 'boards:post_create' board_pk=board.pk %}" class="btn btn-primary">Создать новый пост</a></p>
+    {% else %}
+        <p>Для создания постов <a href="{% url 'login_request_code' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+    {% endif %}
+
+    {% if posts %}
+        <ul>
+            {% for post in posts %}
+                <li>
+                    <a href="{% url 'boards:post_detail' pk=post.pk %}">
+                        {{ post.title }}
+                    </a>
+                    от {{ post.author.username }} (Просмотров: {{ post.views_count }})
+                    <br>
+                    <small>Создано: {{ post.created_at|date:"d M Y H:i" }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>На этой доске пока нет постов.</p>
+    {% endif %}
+
+    {# Пагинация #}
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}

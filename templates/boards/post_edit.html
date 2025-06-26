@@ -1,0 +1,17 @@
+{# templates/boards/post_edit.html #}
+{% extends 'base.html' %}
+
+{% block title %}Редактировать пост "{{ post.title }}"{% endblock %}
+
+{% block content %}
+    <h1>Редактировать пост "{{ post.title }}" на доске "{{ board.name }}"</h1>
+    <p><a href="{% url 'boards:post_detail' board_pk=board.pk post_pk=post.pk %}">Вернуться к посту</a></p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Сохранить изменения</button>
+    </form>
+
+    {{ form.media }} {# Это важно для корректной работы CKEditor #}
+{% endblock %}

@@ -1,0 +1,51 @@
+{# templates/boards/post_detail.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - {{ post.board.name }}{% endblock %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <p><a href="{% url 'boards:posts_by_board' pk=post.board.pk %}">Вернуться к доске "{{ post.board.name }}"</a></p>
+
+    <div class="post-content">
+        <p><strong>Автор:</strong> {{ post.author.username }}</p>
+        <p><strong>Доска:</strong> {{ post.board.name }}</p>
+        <p><strong>Создано:</strong> {{ post.created_at|date:"d M Y H:i" }}</p>
+        <p><strong>Обновлено:</strong> {{ post.updated_at|date:"d M Y H:i" }}</p>
+        <p><strong>Просмотров:</strong> {{ post.views }}</p> {# <-- ИЗМЕНЕНО: views_count на views #}
+        <hr>
+        {# Содержимое поста, здесь будет HTML из CKEditor #}
+        <div>{{ post.content|safe }}</div>
+    </div>
+
+    {% if user.is_authenticated and user == post.author %}
+        <p><a href="{% url 'boards:edit_post' board_pk=post.board.pk post_pk=post.pk %}" class="btn btn-primary">Редактировать пост</a></p>
+    {% endif %}
+
+    <h2>Ответы ({{ responses.count }})</h2>
+    {% if responses %}
+        <ul>
+            {% for response in responses %}
+                <li>
+                    <p><strong>{{ response.author.username }}</strong> ответил {{ response.created_at|date:"d M Y H:i" }}:</p>
+                    {# Содержимое ответа, здесь будет HTML из CKEditor #}
+                    <div>{{ response.content|safe }}</div>
+                    <hr>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Пока нет ответов. Будьте первым!</p>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <h2>Добавить ответ</h2>
+        <form method="post" action="{% url 'boards:add_response' board_pk=post.board.pk post_pk=post.pk %}">
+            {% csrf_token %}
+            {{ form.as_p }} {# Вывод формы ответа #}
+            <button type="submit">Опубликовать ответ</button>
+        </form>
+    {% else %}
+        <p>Чтобы оставить ответ, пожалуйста, <a href="{% url 'login_request_code' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+    {% endif %}
+{% endblock %}

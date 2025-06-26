@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Создать новый пост на {{ board.name }}{% endblock %}
+
+{% block content %}
+    <h1>Создать новый пост на "{{ board.name }}"</h1>
+    <p><a href="{% url 'boards:posts_by_board' pk=board.pk %}">Вернуться к доске "{{ board.name }}"</a></p>
+
+    <form method="post">
+        {% csrf_token %} {# Важно для безопасности формы #}
+        {{ form.as_p }} {# Это простой способ вывести все поля формы в параграфах #}
+        <button type="submit">Опубликовать пост</button>
+    </form>
+
+    {{ form.media }}
+{% endblock %}

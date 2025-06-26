@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваш отклик принят!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        .header { background-color: #28a745; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .highlight { font-weight: bold; color: #007bff; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white !important;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Ваш отклик был принят!</h2>
+        </div>
+        <div class="content">
+            <p>Здравствуйте, <span class="highlight">{{ recipient_username }}</span>!</p>
+            <p>Хорошие новости! Автор поста "<span class="highlight">{{ post_title }}</span>" принял ваш отклик.</p>
+            <p>Содержание вашего отклика:</p>
+            <div style="border: 1px solid #eee; padding: 10px; background-color: #fff;">
+                {{ response_content|safe }}
+            </div>
+            <p>Вы можете просмотреть пост по следующей ссылке:</p>
+            <p style="text-align: center;">
+                <a href="{{ post_url }}" class="button">Перейти к посту</a>
+            </p>
+            <p>Поздравляем!</p>
+        </div>
+        <div class="footer">
+            <p>С уважением,<br>Команда MyFanBoard.</p>
+        </div>
+    </div>
+</body>
+</html>

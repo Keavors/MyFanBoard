@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Отписаться от рассылки{% endblock %}
+
+{% block content %}
+    <h1>Отписаться от новостной рассылки</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>Вы собираетесь отписаться от новостной рассылки MyFanBoard на email: <strong>{{ email }}</strong>.</p>
+    <p>Вы уверены, что хотите отписаться?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Да, отписаться</button>
+        <a href="{% url 'home' %}">Нет, вернуться на главную</a>
+    </form>
+{% endblock %}

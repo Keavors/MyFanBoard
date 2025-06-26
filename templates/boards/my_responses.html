@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои отклики{% endblock %}
+
+{% block content %}
+    <h1>Мои отклики</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {# Форма для фильтрации (будет реализована позже) #}
+    <div class="filter-section" style="margin-bottom: 20px;">
+        <p>Здесь будет фильтрация постов и другие опции.</p>
+        {# Пример: <form method="get">
+            <label for="post_filter">Фильтровать по посту:</label>
+            <select name="post" id="post_filter">
+                <option value="">Все посты</option>
+                {% for post in user_posts %}
+                    <option value="{{ post.pk }}">{{ post.title }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Применить</button>
+        </form> #}
+    </div>
+
+    {% if has_responses %}
+        <div class="list-group">
+            {% for response in my_responses %}
+                <div class="list-group-item">
+                    <h3>
+                        <a href="{% url 'boards:post_detail' board_pk=response.post.board.pk post_pk=response.post.pk %}">
+                            Отклик на пост: "{{ response.post.title }}"
+                        </a>
+                    </h3>
+                    <p>
+                        <small>
+                            Отправлен: {{ response.created_at|date:"d M Y H:i" }} |
+                            Статус:
+                            {% if response.is_accepted %}
+                                <span class="badge bg-success">Принят</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">На рассмотрении</span>
+                            {% endif %}
+                        </small>
+                    </p>
+                    <div class="response-content">
+                        {{ response.content|safe }} {# Отображаем HTML-содержимое #}
+                    </div>
+
+                    <div class="response-actions" style="margin-top: 10px;">
+                        {% if user == response.post.author %}
+                            {# Кнопки для автора поста #}
+                            {% if not response.is_accepted %}
+                                <form method="post" action="{% url 'boards:accept_response' pk=response.pk %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm">Принять</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'boards:delete_response' pk=response.pk %}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить этот отклик?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                            </form>
+                        {% elif user == response.author %}
+                            {# Кнопка удаления для автора отклика #}
+                            <form method="post" action="{% url 'boards:delete_response' pk=response.pk %}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить свой отклик?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить свой отклик</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>У вас пока нет откликов.</p>
+    {% endif %}
+
+    {# Если хотите сохранить ссылку на список досок, добавьте ее здесь #}
+    <p class="mt-3"><a href="{% url 'boards:list' %}">Вернуться к списку досок</a></p>
+{% endblock %}

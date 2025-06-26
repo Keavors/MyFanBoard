@@ -1,0 +1,41 @@
+{% extends 'base.html' %} {# Расширяем базовый шаблон #}
+
+{% block title %}Доски{% endblock %}
+
+{% block content %}
+    <h1>Все доски</h1>
+
+    {% if boards %}
+        <ul>
+            {% for board in boards %}
+                <li>
+                    <a href="{% url 'boards:posts_by_board' pk=board.pk %}">
+                        {{ board.name }}
+                    </a> - {{ board.description }}
+                    (Постов: {{ board.posts.count }}) {# Сколько постов на этой доске #}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Досок пока нет.</p>
+    {% endif %}
+
+    {# Пагинация, если нужна #}
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}

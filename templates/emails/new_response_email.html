@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новый отклик на ваш пост</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        .header { background-color: #5cb85c; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .button-container { text-align: center; margin: 20px 0; }
+        .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Новый отклик на ваш пост!</h2>
+        </div>
+        <div class="content">
+            <p>Здравствуйте, {{ post_author_username|default:post_author_email }}!</p>
+            <p>На ваш пост "<strong>{{ post_title }}</strong>" был оставлен новый отклик.</p>
+            <p><strong>Автор отклика:</strong> {{ response_author_username|default:response_author_email }}</p>
+            <p><strong>Содержание отклика:</strong></p>
+            <div style="border: 1px solid #eee; padding: 10px; background-color: #fff; margin-top: 10px;">
+                {{ response_content|safe }}
+            </div>
+            <p>Вы можете просмотреть все отклики и управлять ими, перейдя по ссылке ниже:</p>
+            <div class="button-container">
+                <a href="{{ post_url }}" class="button">Перейти к посту</a>
+            </div>
+            <p>С уважением,<br>Команда фан-ресурса.</p>
+        </div>
+        <div class="footer">
+            <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
+        </div>
+    </div>
+</body>
+</html>
